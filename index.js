@@ -59,7 +59,7 @@ prototype.write = function (entry, callback) {
   const line = digest + '\n'
   runSeries([
     (done) => fs.writeFile(
-      this._entryPath(digest), stringified, { flag: 'wx' }, done
+      this._entryPath(digest), stringified, { flag: 'w' }, done
     ),
     (done) => fs.writeFile(
       this.logPath, line, { flag: 'a' }, done
