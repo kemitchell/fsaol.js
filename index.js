@@ -2,7 +2,6 @@ const fs = require('fs')
 const mkdirp = require('mkdirp')
 const path = require('path')
 const pump = require('pump')
-const runParallel = require('run-parallel')
 const runSeries = require('run-series')
 const split2 = require('split2')
 const through2 = require('through2')
@@ -48,7 +47,7 @@ function FilesystemAppendOnlyLog (options) {
 const prototype = FilesystemAppendOnlyLog.prototype
 
 prototype.initialize = function (callback) {
-  runParallel([
+  runSeries([
     (done) => mkdirp(this.entriesPath, done),
     (done) => touch(this.logPath, done)
   ], callback)
