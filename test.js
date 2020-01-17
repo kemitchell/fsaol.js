@@ -111,6 +111,21 @@ tape('hash < Linux PIPE_BUF', (test) => {
   test.end()
 })
 
+tape('hash > Linux PIPE_BUF', (test) => {
+  test.throws(() => {
+    // eslint-disable-next-line no-new
+    new FSAOL({
+      hashFunction: (input) => {
+        return hashFunction(input).repeat(100)
+      },
+      directory: os.tmpdir(),
+      linuxPipeBuf: true,
+      encoding
+    })
+  }, /PIPE_BUF/)
+  test.end()
+})
+
 tape('construct without new', (test) => {
   test.doesNotThrow(() => {
     FSAOL({
