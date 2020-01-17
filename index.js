@@ -16,7 +16,7 @@ function FilesystemAppendOnlyLog (options) {
 
   const directory = options.directory
   if (typeof directory !== 'string') {
-    throw new TypeError('directory not a string')
+    throw new TypeError('directory not string')
   }
   this.directory = directory
   this.logPath = path.join(directory, 'log')
