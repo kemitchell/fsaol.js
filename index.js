@@ -28,7 +28,7 @@ function FilesystemAppendOnlyLog (options) {
     typeof encoding.stringify !== 'function' ||
     typeof encoding.parse !== 'function'
   ) throw new TypeError('encoding not Object with stringify and parse functions')
-  this.encoding = options.encoding
+  this.encoding = encoding
 
   const hashFunction = options.hashFunction
   if (typeof hashFunction !== 'function') {
