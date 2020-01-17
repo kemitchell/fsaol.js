@@ -22,7 +22,7 @@ function FilesystemAppendOnlyLog (options) {
   this.logPath = path.join(directory, 'log')
   this.entriesPath = path.join(directory, 'entries')
 
-  var encoding = options.encoding
+  const encoding = options.encoding
   if (
     typeof encoding !== 'object' ||
     typeof encoding.stringify !== 'function' ||
