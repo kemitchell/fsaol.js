@@ -132,6 +132,8 @@ prototype.head = function (callback) {
   })
 }
 
+// Private Helper Methods
+
 prototype._readEntryByDigest = function (digest, callback) {
   fs.readFile(this._entryPath(digest), 'utf8', (error, data) => {
     if (error) return callback(error)
