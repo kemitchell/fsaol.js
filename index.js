@@ -1,9 +1,10 @@
+const flushWriteStream = require('flush-write-stream')
 const fs = require('fs')
 const mkdirp = require('mkdirp')
 const path = require('path')
-const pump = require('pump')
 const runSeries = require('run-series')
 const split2 = require('split2')
+const stream = require('stream')
 const through2 = require('through2')
 const touch = require('touch')
 
@@ -112,17 +113,55 @@ const hasOwnProperty = Object.prototype.hasOwnProperty
 
 prototype.stream = function (options) {
   options = options || {}
-  return pump(
-    fs.createReadStream(this.logPath, {
-      start: hasOwnProperty.call(options, 'start')
-        ? (options.start * this.logLineBytes)
-        : 0
-    }),
-    split2(),
+  return stream.pipeline(
+    this._streamDigests(options),
     through2.obj((digest, _, done) => {
       this._readEntryByDigest(digest, done)
     })
   )
+}
+
+prototype.watch = function (options) {
+  options = options || {}
+  const self = this
+  let position = options.start || 0
+  let changeSinceStream = false
+  let streaming = false
+  const returned = through2.obj()
+  const watcher = fs.watch(this.logPath, () => {
+    if (streaming) changeSinceStream = true
+    else streamEntries()
+  })
+  stream.finished(returned, stopWatching)
+  streamEntries()
+  return returned
+
+  function stopWatching () {
+    watcher.close()
+  }
+
+  function streamEntries () {
+    streaming = true
+    changeSinceStream = false
+    stream.pipeline(
+      self._streamDigests({ start: position }),
+      flushWriteStream.obj((digest, _, done) => {
+        position++
+        self._readEntryByDigest(digest, (error, entry) => {
+          if (error) return done(error)
+          returned.write(entry, done)
+        })
+      }),
+      (error) => {
+        streaming = false
+        if (error) {
+          returned.emit('error', error)
+          return returned.end()
+        }
+        if (changeSinceStream) streamEntries()
+      }
+    )
+  }
 }
 
 prototype.head = function (callback) {
@@ -148,4 +187,16 @@ prototype._readEntryByDigest = function (digest, callback) {
 
 prototype._entryPath = function (digest) {
   return path.join(this.entriesPath, digest)
+}
+
+prototype._streamDigests = function (options) {
+  options = options || {}
+  return stream.pipeline(
+    fs.createReadStream(this.logPath, {
+      start: hasOwnProperty.call(options, 'start')
+        ? (options.start * this.logLineBytes)
+        : 0
+    }),
+    split2()
+  )
 }

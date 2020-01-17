@@ -53,6 +53,40 @@ tape('init, write, stream, read, head', (test) => {
   })
 })
 
+tape('watch', (test) => {
+  let directory, aol
+  const entries = [{ x: 1 }, { y: 2 }]
+  runSeries([
+    (done) => {
+      fs.mkdtemp(path.join(os.tmpdir(), 'fsaol-'), (error, tmp) => {
+        if (error) return done(error)
+        directory = tmp
+        aol = new FSAOL({ hashFunction, encoding, directory })
+        done()
+      })
+    },
+    (done) => aol.initialize(done),
+    (done) => aol.write(entries[0], done)
+  ], (error) => {
+    test.ifError(error, 'no error')
+    const streamed = []
+    const stream = aol.watch()
+      .on('data', (entry) => {
+        streamed.push(entry)
+        if (streamed.length === 1) {
+          aol.write(entries[1], (error) => {
+            test.ifError(error, 'no write error')
+          })
+        } else if (streamed.length === 2) {
+          test.deepEqual(streamed, entries, 'streams')
+          stream.end()
+          test.end()
+          rimraf.sync(directory)
+        }
+      })
+  })
+})
+
 tape('init, write multiple, stream with offset', (test) => {
   let directory, aol
   const entries = [{ x: 1 }, { y: 2 }, { z: 3 }]
