@@ -10,6 +10,10 @@ const touch = require('touch')
 module.exports = FilesystemAppendOnlyLog
 
 function FilesystemAppendOnlyLog (options) {
+  if (!(this instanceof FilesystemAppendOnlyLog)) {
+    return new FilesystemAppendOnlyLog(options)
+  }
+
   const directory = options.directory
   if (typeof directory !== 'string') {
     throw new TypeError('directory not a string')
