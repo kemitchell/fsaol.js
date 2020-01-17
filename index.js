@@ -11,14 +11,27 @@ module.exports = FilesystemAppendOnlyLog
 
 function FilesystemAppendOnlyLog (options) {
   const directory = options.directory
+  if (typeof directory !== 'string') {
+    throw new TypeError('directory not a string')
+  }
   this.directory = directory
   this.logPath = path.join(directory, 'log')
   this.entriesPath = path.join(directory, 'entries')
 
   var encoding = options.encoding
+  if (
+    typeof encoding !== 'object' ||
+    typeof encoding.stringify !== 'function' ||
+    typeof encoding.parse !== 'function'
+  ) throw new TypeError('encoding not Object with stringify and parse functions')
   this.encoding = options.encoding
+
   const hashFunction = options.hashFunction
+  if (typeof hashFunction !== 'function') {
+    throw new TypeError('hashFunction not function')
+  }
   this.hashFunction = hashFunction
+
   // Calculate an example hash to determine its length.
   this.digestBytes = Buffer.from(
     hashFunction(encoding.stringify('x'))
