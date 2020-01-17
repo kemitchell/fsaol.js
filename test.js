@@ -122,6 +122,33 @@ tape('construct without new', (test) => {
   test.end()
 })
 
+tape('construct without directory', (test) => {
+  test.throws(() => {
+    FSAOL({ hashFunction, encoding })
+  }, /directory/)
+  test.end()
+})
+
+tape('construct without encoding', (test) => {
+  test.throws(() => {
+    FSAOL({
+      hashFunction,
+      directory: os.tmpdir()
+    })
+  }, /encoding/)
+  test.end()
+})
+
+tape('construct without hash function', (test) => {
+  test.throws(() => {
+    FSAOL({
+      directory: os.tmpdir(),
+      encoding
+    })
+  }, /hashFunction/)
+  test.end()
+})
+
 function hashFunction (data) {
   return crypto.createHash('sha256')
     .update(data)
