@@ -1,6 +1,6 @@
 {
   "name": "fsaol",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "filesystem-based append-only log",
   "author": "Kyle E. Mitchell <kyle@kemitchell.com> (https://kemitchell.com/)",
   "repository": "kemitchell/fsaol.js",
