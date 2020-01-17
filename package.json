@@ -1,0 +1,27 @@
+{
+  "name": "fsaol",
+  "version": "0.0.0",
+  "description": "filesystem-based append-only log",
+  "author": "Kyle E. Mitchell <kyle@kemitchell.com> (https://kemitchell.com/)",
+  "repository": "kemitchell/fsaol.js",
+  "license": "BlueOak-1.0.0",
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "mkdirp": "^0.5.1",
+    "pump": "^3.0.0",
+    "run-parallel": "^1.1.9",
+    "run-series": "^1.1.8",
+    "split2": "^3.1.1",
+    "through2": "^3.0.1",
+    "touch": "^3.1.0"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.0",
+    "tape": "^4.13.0"
+  },
+  "scripts": {
+    "test": "node test.js"
+  }
+}
