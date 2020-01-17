@@ -111,6 +111,17 @@ tape('hash < Linux PIPE_BUF', (test) => {
   test.end()
 })
 
+tape('construct without new', (test) => {
+  test.doesNotThrow(() => {
+    FSAOL({
+      hashFunction,
+      directory: os.tmpdir(),
+      encoding
+    })
+  })
+  test.end()
+})
+
 function hashFunction (data) {
   return crypto.createHash('sha256')
     .update(data)
