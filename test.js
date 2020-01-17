@@ -1,17 +1,17 @@
-var FSAOL = require('./')
-var crypto = require('crypto')
-var fs = require('fs')
-var os = require('os')
-var path = require('path')
-var rimraf = require('rimraf')
-var runSeries = require('run-series')
-var tape = require('tape')
+const FSAOL = require('./')
+const crypto = require('crypto')
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
+const rimraf = require('rimraf')
+const runSeries = require('run-series')
+const tape = require('tape')
 
-var encoding = JSON
+const encoding = JSON
 
 tape('init, write, stream, read, head', (test) => {
-  var directory, aol
-  var entry = { x: 1 }
+  let directory, aol
+  const entry = { x: 1 }
   runSeries([
     (done) => {
       fs.mkdtemp(path.join(os.tmpdir(), 'fsaol-'), (error, tmp) => {
@@ -24,7 +24,7 @@ tape('init, write, stream, read, head', (test) => {
     (done) => aol.initialize(done),
     (done) => aol.write(entry, done),
     (done) => {
-      var streamed = []
+      const streamed = []
       aol.stream()
         .on('data', (entry) => { streamed.push(entry) })
         .once('end', () => {
@@ -54,8 +54,8 @@ tape('init, write, stream, read, head', (test) => {
 })
 
 tape('init, write multiple, stream with offset', (test) => {
-  var directory, aol
-  var entries = [{ x: 1 }, { y: 2 }, { z: 3 }]
+  let directory, aol
+  const entries = [{ x: 1 }, { y: 2 }, { z: 3 }]
   runSeries([
     (done) => {
       fs.mkdtemp(path.join(os.tmpdir(), 'fsaol-'), (error, tmp) => {
@@ -71,7 +71,7 @@ tape('init, write multiple, stream with offset', (test) => {
       done
     ),
     (done) => {
-      var streamed = []
+      const streamed = []
       aol.stream({ start: 1 })
         .on('data', (entry) => { streamed.push(entry) })
         .once('end', () => {
