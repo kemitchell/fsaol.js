@@ -19,9 +19,12 @@ function FilesystemAppendOnlyLog (options) {
   this.encoding = options.encoding
   const hashFunction = options.hashFunction
   this.hashFunction = hashFunction
+  // Calculate an example hash to determine its length.
   this.digestBytes = Buffer.from(
     hashFunction(encoding.stringify('x'))
   ).length
+  // The length of a line in the log file is the length
+  // of a hash plus one for the newline delimiter.
   this.logLineBytes = this.digestBytes + 1
 
   const linuxPipeBuf = options.linuxPipeBuf
@@ -56,13 +59,13 @@ prototype.initialize = function (callback) {
 prototype.write = function (entry, callback) {
   const stringified = this.encoding.stringify(entry)
   const digest = this.hashFunction(stringified)
-  const line = digest + '\n'
+  const logLine = digest + '\n'
   runSeries([
     (done) => fs.writeFile(
       this._entryPath(digest), stringified, { flag: 'w' }, done
     ),
     (done) => fs.writeFile(
-      this.logPath, line, { flag: 'a' }, done
+      this.logPath, logLine, { flag: 'a' }, done
     )
   ], callback)
 }
