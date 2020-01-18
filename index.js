@@ -17,12 +17,16 @@ function FilesystemAppendOnlyLog (options) {
   }
 
   const directory = options.directory
-  if (typeof directory !== 'string') {
+  const directoryType = typeof directory
+  if (
+    directoryType !== 'string' &&
+    directoryType !== 'function'
+  ) {
     throw new TypeError('directory not string')
   }
-  this.directory = directory
-  this.logPath = path.join(directory, 'log')
-  this.entriesPath = path.join(directory, 'entries')
+  this.directory = directoryType === 'function'
+    ? directory
+    : () => directory
 
   const encoding = options.encoding
   if (
@@ -70,8 +74,8 @@ const prototype = FilesystemAppendOnlyLog.prototype
 
 prototype.initialize = function (callback) {
   runSeries([
-    (done) => mkdirp(this.entriesPath, done),
-    (done) => touch(this.logPath, done)
+    (done) => mkdirp(this._entriesPath(), done),
+    (done) => touch(this._logPath(), done)
   ], callback)
 }
 
@@ -84,13 +88,13 @@ prototype.write = function (entry, callback) {
       this._entryPath(digest), stringified, { flag: 'w' }, done
     ),
     (done) => fs.writeFile(
-      this.logPath, logLine, { flag: 'a' }, done
+      this._logPath(), logLine, { flag: 'a' }, done
     )
   ], callback)
 }
 
 prototype.read = function (index, callback) {
-  fs.open(this.logPath, 'r', (error, fd) => {
+  fs.open(this._logPath(), 'r', (error, fd) => {
     if (error) return callback(error)
     const length = this.digestBytes
     const buffer = Buffer.alloc(length)
@@ -129,7 +133,7 @@ prototype.watch = function (options) {
   let changeSinceStream = false
   let streaming = false
   const returned = through2.obj()
-  const watcher = fs.watch(this.logPath, () => {
+  const watcher = fs.watch(self._logPath(), () => {
     if (streaming) changeSinceStream = true
     else streamEntries()
   })
@@ -166,13 +170,21 @@ prototype.watch = function (options) {
 }
 
 prototype.head = function (callback) {
-  fs.stat(this.logPath, (error, stats) => {
+  fs.stat(this._logPath(), (error, stats) => {
     if (error) return callback(error)
     callback(null, stats.size / this.logLineBytes)
   })
 }
 
 // Private Helper Methods
+
+prototype._logPath = function () {
+  return path.join(this.directory(), 'log')
+}
+
+prototype._entriesPath = function () {
+  return path.join(this.directory(), 'entries')
+}
 
 prototype._readEntryByDigest = function (digest, callback) {
   fs.readFile(this._entryPath(digest), 'utf8', (error, data) => {
@@ -193,7 +205,7 @@ prototype._entryPath = function (digest) {
 prototype._streamDigests = function (options) {
   options = options || {}
   return pump(
-    fs.createReadStream(this.logPath, {
+    fs.createReadStream(this._logPath(), {
       start: hasOwnProperty.call(options, 'start')
         ? (options.start * this.logLineBytes)
         : 0
