@@ -1,10 +1,11 @@
+const endOfStream = require('end-of-stream')
 const flushWriteStream = require('flush-write-stream')
 const fs = require('fs')
 const mkdirp = require('mkdirp')
 const path = require('path')
+const pump = require('pump')
 const runSeries = require('run-series')
 const split2 = require('split2')
-const stream = require('stream')
 const through2 = require('through2')
 const touch = require('touch')
 
@@ -113,7 +114,7 @@ const hasOwnProperty = Object.prototype.hasOwnProperty
 
 prototype.stream = function (options) {
   options = options || {}
-  return stream.pipeline(
+  return pump(
     this._streamDigests(options),
     through2.obj((digest, _, done) => {
       this._readEntryByDigest(digest, done)
@@ -132,7 +133,7 @@ prototype.watch = function (options) {
     if (streaming) changeSinceStream = true
     else streamEntries()
   })
-  stream.finished(returned, stopWatching)
+  endOfStream(returned, stopWatching)
   streamEntries()
   return returned
 
@@ -143,7 +144,7 @@ prototype.watch = function (options) {
   function streamEntries () {
     streaming = true
     changeSinceStream = false
-    stream.pipeline(
+    pump(
       self._streamDigests({ start: position }),
       flushWriteStream.obj((digest, _, done) => {
         position++
@@ -186,12 +187,12 @@ prototype._readEntryByDigest = function (digest, callback) {
 }
 
 prototype._entryPath = function (digest) {
-  return path.join(this.entriesPath, digest)
+  return path.join(this._entriesPath(), digest)
 }
 
 prototype._streamDigests = function (options) {
   options = options || {}
-  return stream.pipeline(
+  return pump(
     fs.createReadStream(this.logPath, {
       start: hasOwnProperty.call(options, 'start')
         ? (options.start * this.logLineBytes)
